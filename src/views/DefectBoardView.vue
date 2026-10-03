@@ -9,6 +9,7 @@ const router = useRouter()
 const columns = ['需整改', '整改中', '待复测', '已关闭'] as const
 const riskOrder = { 紧急: 0, 高: 1, 中: 2, 低: 3 }
 const grouped = computed(() => Object.fromEntries(columns.map((status) => [status, store.records.filter((item) => item.status === status).sort((a, b) => riskOrder[a.risk] - riskOrder[b.risk])])))
+const releaseOf = (record: any) => store.deviceRelease(record)
 </script>
 
 <template>
@@ -24,6 +25,7 @@ const grouped = computed(() => Object.fromEntries(columns.map((status) => [statu
           <div><NTag :type="record.risk === '紧急' ? 'error' : record.risk === '高' ? 'warning' : 'default'" size="small" :bordered="false">{{ record.risk }}风险</NTag><small>V{{ record.version }}</small></div>
           <h3>{{ record.deviceName }}</h3>
           <p>{{ record.deviceCode }} · {{ record.area }}</p>
+          <p class="zone-line" :class="{ blocked: !releaseOf(record).released }">分区：{{ releaseOf(record).label }} · {{ releaseOf(record).reason }}</p>
           <footer><span>{{ record.assignedTo }}</span><span :class="{ overdue: record.dueDate <= '2026-09-29' }">{{ record.dueDate }} 截止</span></footer>
         </article>
         <div v-if="!grouped[column].length" class="kanban-empty">暂无任务</div>

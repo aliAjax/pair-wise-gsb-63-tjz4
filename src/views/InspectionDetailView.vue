@@ -22,18 +22,29 @@ watch(record, (value) => {
 }, { immediate: true })
 
 const items = computed(() => record.value?.items ?? [])
+const zoneSummary = computed(() => record.value?.zoneId ? store.getZoneSummary(record.value.zoneId) : undefined)
+const release = computed(() => record.value ? store.deviceRelease(record.value) : undefined)
+const zoneTagType = computed(() => {
+  const status = zoneSummary.value?.status
+  return status === '已放行' ? 'success' : status === '回路中断' ? 'error' : status === '缺陷未闭环' ? 'warning' : 'info'
+})
 const transitions: InspectionStatus[] = ['待检验', '需整改', '整改中', '待复测', '已关闭', '停用']
 
 function save() {
   if (!record.value) return
-  store.updateRecord(record.value.id, {
+  const result = store.updateRecord(record.value.id, {
     assignedTo: form.assignedTo,
     dueDate: form.dueDate,
     risk: form.risk,
     stopped: form.stopped,
     items: form.items
   })
-  message.success('检验记录已保存并生成新版本')
+  if (result.ok) {
+    message.success('检验记录已保存并生成新版本')
+  } else {
+    Object.assign(form, structuredClone(record.value))
+    message.error(result.message)
+  }
 }
 
 function changeStatus(next: InspectionStatus) {
@@ -107,6 +118,30 @@ function exportRecord() {
         <strong>{{ record.status }}</strong>
         <small>版本 V{{ record.version }} · 更新于 {{ record.updatedAt.replace('T', ' ').slice(0, 16) }}</small>
       </div>
+      <div v-if="zoneSummary" class="zone-panel">
+        <div class="zone-panel-head">
+          <span class="side-label">联锁分区放行</span>
+          <NTag size="small" :type="zoneTagType" :bordered="false">{{ zoneSummary.status }}</NTag>
+        </div>
+        <strong>{{ zoneSummary.zone.name }}</strong>
+        <small>回路 {{ zoneSummary.zone.circuit }} · {{ zoneSummary.zone.circuitStatus }}</small>
+        <ul class="zone-checklist">
+          <li :class="{ done: zoneSummary.zone.circuitStatus === '接通' }">回路接通</li>
+          <li :class="{ done: !zoneSummary.openDefects.length }">缺陷闭环</li>
+          <li :class="{ done: !!zoneSummary.zone.retestPassedAt }">分区复测</li>
+          <li :class="{ done: !!zoneSummary.zone.leaderConfirmedAt }">值班长确认</li>
+        </ul>
+        <p class="zone-release" :class="{ blocked: !release?.released }">{{ release?.label }}：{{ release?.reason }}</p>
+        <NButton block size="small" @click="router.push('/zones')">前往分区放行</NButton>
+      </div>
+      <div v-else class="zone-panel pending">
+        <div class="zone-panel-head">
+          <span class="side-label">联锁分区放行</span>
+          <NTag size="small" type="warning" :bordered="false">分区待核</NTag>
+        </div>
+        <p class="zone-release blocked">记录缺少分区归属，核实前不得开放；请到联锁分区页人工核定。</p>
+        <NButton block size="small" @click="router.push('/zones')">前往核定</NButton>
+      </div>
       <div class="flow-list">
         <button v-for="status in transitions" :key="status" :class="{ active: status === record.status }" @click="changeStatus(status)">
           <span>{{ status }}</span><small>{{ status === record.status ? '当前状态' : '执行流转' }}</small>
@@ -114,7 +149,7 @@ function exportRecord() {
       </div>
       <div class="rule-note">
         <strong>闭环校验</strong>
-        <p>异常项存在时禁止关闭；紧急风险必须先停用设备。所有操作均写入审计。</p>
+        <p>异常项存在时禁止关闭；紧急风险必须先停用设备。单台通过不能先行开放，分区复测与值班长确认齐全才恢复。所有操作均写入审计。</p>
       </div>
       <NButton block @click="router.push('/audit')">查看完整审计</NButton>
     </aside>

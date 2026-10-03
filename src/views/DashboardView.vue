@@ -23,11 +23,18 @@ const statusOptions = ['全部', '待检验', '需整改', '整改中', '待复�
 const areaOptions = ['全部', ...new Set(store.records.map((item) => item.area))].map((value) => ({ label: value, value }))
 const riskOptions: Array<{ label: RiskLevel; value: RiskLevel }> = ['低', '中', '高', '紧急'].map((value) => ({ label: value as RiskLevel, value: value as RiskLevel }))
 
+const zoneTagType = (status: string) => status === '已放行' ? 'success' : status === '回路中断' ? 'error' : status === '缺陷未闭环' ? 'warning' : 'info'
+const releaseTag = (row: any) => {
+  const release = store.deviceRelease(row)
+  return h(NTag, { type: release.released ? 'success' : release.label === '分区待核' ? 'warning' : release.label === '分区未放行' ? 'error' : 'default', bordered: false }, { default: () => release.label })
+}
+
 const columns = [
   { title: '检验编号', key: 'id', width: 145 },
   { title: '设备', key: 'deviceName', width: 130, render: (row: any) => `${row.deviceName} / ${row.deviceCode}` },
   { title: '区域', key: 'area', width: 90 },
   { title: '状态', key: 'status', width: 90, render: (row: any) => h(NTag, { type: row.stopped ? 'error' : row.status === '已关闭' ? 'success' : 'warning', bordered: false }, { default: () => row.status }) },
+  { title: '分区放行', key: 'zoneRelease', width: 100, render: releaseTag },
   { title: '风险', key: 'risk', width: 80 },
   { title: '责任人', key: 'assignedTo', width: 105 },
   { title: '截止', key: 'dueDate', width: 110 },
@@ -54,6 +61,19 @@ function createRecord() {
       <article><span>停用设备</span><strong>{{ store.stats.blocked }}</strong><small>需优先核实隔离状态</small></article>
       <article><span>临近超期</span><strong>{{ store.stats.overdue }}</strong><small>按整改截止日计算</small></article>
       <article><span>已闭环</span><strong>{{ store.stats.closed }}</strong><small>异常项已复核完成</small></article>
+    </div>
+
+    <div class="zone-strip">
+      <article v-for="summary in store.zoneSummaries" :key="summary.zone.id" @click="router.push('/zones')">
+        <header><strong>{{ summary.zone.name }}</strong><NTag size="small" :type="zoneTagType(summary.status)" :bordered="false">{{ summary.status }}</NTag></header>
+        <p>回路 {{ summary.zone.circuit }} · {{ summary.zone.circuitStatus }} · 未闭环 {{ summary.openDefects.length }} 台</p>
+        <small>{{ summary.basis }}</small>
+      </article>
+      <article v-if="store.stats.pendingZone" class="pending-card" @click="router.push('/zones')">
+        <header><strong>分区待核</strong><NTag size="small" type="warning" :bordered="false">{{ store.stats.pendingZone }} 条</NTag></header>
+        <p>旧数据缺分区号且补不全，停在待核</p>
+        <small>核实前不得开放对应设备</small>
+      </article>
     </div>
 
     <div class="toolbar">

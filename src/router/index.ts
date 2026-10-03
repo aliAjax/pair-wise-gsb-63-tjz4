@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import DashboardView from '../views/DashboardView.vue'
 import DefectBoardView from '../views/DefectBoardView.vue'
 import InspectionDetailView from '../views/InspectionDetailView.vue'
+import ZoneView from '../views/ZoneView.vue'
 import AuditView from '../views/AuditView.vue'
 
 export const router = createRouter({
@@ -9,6 +10,7 @@ export const router = createRouter({
   routes: [
     { path: '/', name: 'dashboard', component: DashboardView },
     { path: '/defects', name: 'defects', component: DefectBoardView },
+    { path: '/zones', name: 'zones', component: ZoneView },
     { path: '/records/:id', name: 'record', component: InspectionDetailView, props: true },
     { path: '/audit', name: 'audit', component: AuditView }
   ]

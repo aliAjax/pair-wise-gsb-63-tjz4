@@ -99,3 +99,50 @@ h3 { font-size: 15px; margin: 0 0 10px; }
 .audit-card p { margin: 8px 0; color: #5e6c69; font-size: 12px; }
 .audit-card small { color: #8b9794; font-size: 11px; }
 .empty-state { padding: 80px; text-align: center; color: #71807d; }
+
+/* 联锁分区放行 */
+.zone-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin: 0 0 16px; }
+.zone-strip article { background: white; border: 1px solid #dbe2df; border-radius: 5px; padding: 13px 16px; cursor: pointer; }
+.zone-strip article:hover { border-color: #9db8b3; }
+.zone-strip header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.zone-strip strong { font-size: 13px; }
+.zone-strip p { margin: 8px 0 4px; font-size: 11px; color: #6b7a77; }
+.zone-strip small { color: #93a19e; font-size: 11px; }
+.zone-strip .pending-card { border-style: dashed; }
+.zone-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+.zone-card { background: white; border: 1px solid #dbe2df; border-radius: 5px; padding: 18px 20px; }
+.zone-card > header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.zone-card h3 { margin: 0 0 4px; font-size: 16px; }
+.zone-card > header p { margin: 0; color: #778684; font-size: 11px; }
+.circuit-band { display: grid; grid-template-columns: auto 130px 1fr; gap: 10px; align-items: center; margin: 14px 0; padding: 10px 12px; background: #f4f7f5; border-radius: 4px; font-size: 12px; }
+.circuit-band small { color: #8a9794; }
+.zone-checklist { list-style: none; margin: 0 0 14px; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.zone-checklist li { font-size: 12px; color: #8a9794; padding: 7px 10px; border: 1px dashed #d5ddda; border-radius: 3px; }
+.zone-checklist li::before { content: "○ "; }
+.zone-checklist li.done { color: #1d6b4f; border: 1px solid #bfe0d2; background: #eef7f2; }
+.zone-checklist li.done::before { content: "● "; }
+.zone-actions { display: flex; gap: 8px; margin-bottom: 14px; }
+.member-list { border-top: 1px solid #e5eae8; padding-top: 10px; }
+.member-line { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 7px 4px; border-bottom: 1px solid #f0f3f2; font-size: 12px; cursor: pointer; }
+.member-line:hover { background: #f7faf9; }
+.member-line small { color: #93a19e; margin-left: 6px; }
+.conclusion-history { border-top: 1px solid #e5eae8; margin-top: 10px; padding-top: 12px; }
+.conclusion-history h4 { margin: 0 0 8px; font-size: 12px; }
+.conclusion-history p { margin: 0 0 6px; font-size: 11px; color: #667572; display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+.conclusion-history p.conflict { color: #b44137; }
+.conclusion-history small { color: #9aa7a4; }
+.pending-panel, .batch-panel { background: white; border: 1px solid #dbe2df; border-radius: 5px; padding: 18px 20px; margin-top: 16px; }
+.panel-note { margin: 0 0 12px; color: #778684; font-size: 12px; }
+.pending-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #edf0ef; font-size: 12px; }
+.batch-actions { display: flex; gap: 10px; align-items: center; margin: 10px 0 14px; }
+.zone-line { margin-top: 6px !important; font-size: 11px; color: #1d6b4f; }
+.zone-line.blocked { color: #b44137; }
+.audit-zones { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: white; border: 1px solid #dbe2df; border-radius: 5px; padding: 12px 16px; margin-bottom: 16px; font-size: 12px; color: #5e6c69; }
+.zone-panel { border: 1px solid #dbe2df; border-radius: 5px; padding: 14px; display: grid; gap: 8px; }
+.zone-panel.pending { border-style: dashed; }
+.zone-panel-head { display: flex; justify-content: space-between; align-items: center; }
+.zone-panel > strong { font-size: 15px; color: #15434a; }
+.zone-panel > small { color: #899693; font-size: 11px; }
+.zone-panel .zone-checklist { margin: 0; }
+.zone-release { margin: 0; font-size: 11px; line-height: 1.6; color: #1d6b4f; }
+.zone-release.blocked { color: #b44137; }
