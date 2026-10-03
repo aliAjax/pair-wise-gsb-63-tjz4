@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { InspectionDraft, InspectionRecord } from '../types'
+import type { InspectionDraft, InspectionRecord, OfflineBatchEntry } from '../types'
 
 const client = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
@@ -24,6 +24,7 @@ export function createOfflineInspection(draft: InspectionDraft): InspectionRecor
     inspectedAt: now,
     status: '待检验',
     stopped: false,
+    zoneId: null,
     items: [
       { id: 'wear', name: '结构磨损', result: '正常', reading: '待录入', limit: '≤ 5.0 mm', note: '' },
       { id: 'noise', name: '运行异响', result: '正常', reading: '待录入', limit: '≤ 75 dB', note: '' },
@@ -36,6 +37,14 @@ export function createOfflineInspection(draft: InspectionDraft): InspectionRecor
     createdAt: now,
     updatedAt: now
   }
+}
+
+export function sampleOfflineBatch(): OfflineBatchEntry[] {
+  return [
+    { recordId: 'INS-240821-01', zoneId: 'LOOP-01', conclusion: '已放行', retestDone: true, leaderConfirmed: true, operator: '离线终端-北园', recordedAt: '2026-09-28T17:20:00' },
+    { recordId: 'INS-240821-05', zoneId: null, conclusion: '待复测', retestDone: false, leaderConfirmed: false, operator: '离线终端-北园', recordedAt: '2026-09-28T17:25:00' },
+    { recordId: 'INS-240821-06', zoneId: null, conclusion: '已放行', retestDone: true, leaderConfirmed: true, operator: '离线终端-巡回', recordedAt: '2026-09-28T17:30:00' }
+  ]
 }
 
 export function connectLiveUpdates(onMessage: (message: string) => void): () => void {

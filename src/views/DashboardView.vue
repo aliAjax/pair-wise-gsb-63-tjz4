@@ -28,12 +28,16 @@ const columns = [
   { title: '设备', key: 'deviceName', width: 130, render: (row: any) => `${row.deviceName} / ${row.deviceCode}` },
   { title: '区域', key: 'area', width: 90 },
   { title: '状态', key: 'status', width: 90, render: (row: any) => h(NTag, { type: row.stopped ? 'error' : row.status === '已关闭' ? 'success' : 'warning', bordered: false }, { default: () => row.status }) },
+  { title: '分区结论', key: 'zoneId', width: 130, render: (row: any) => h(NTag, { type: conclusionType(store.zoneConclusion(row.zoneId)), bordered: false, size: 'small' }, { default: () => store.zoneConclusion(row.zoneId) }) },
   { title: '风险', key: 'risk', width: 80 },
   { title: '责任人', key: 'assignedTo', width: 105 },
   { title: '截止', key: 'dueDate', width: 110 },
   { title: '版本', key: 'version', width: 70, render: (row: any) => `V${row.version}` },
   { title: '', key: 'actions', width: 80, render: (row: any) => h(NButton, { size: 'small', tertiary: true, onClick: () => router.push(`/records/${row.id}`) }, { default: () => '打开' }) }
 ]
+
+const conclusionType = (conclusion: string) =>
+  conclusion === '已放行' ? 'success' : conclusion === '待核' || conclusion.includes('断开') ? 'error' : 'warning'
 
 const riskType = (risk: RiskLevel) => risk === '紧急' ? 'error' : risk === '高' ? 'warning' : 'default'
 const validDraft = computed(() => draft.value.deviceCode && draft.value.deviceName && draft.value.assignedTo && draft.value.dueDate)
@@ -54,6 +58,17 @@ function createRecord() {
       <article><span>停用设备</span><strong>{{ store.stats.blocked }}</strong><small>需优先核实隔离状态</small></article>
       <article><span>临近超期</span><strong>{{ store.stats.overdue }}</strong><small>按整改截止日计算</small></article>
       <article><span>已闭环</span><strong>{{ store.stats.closed }}</strong><small>异常项已复核完成</small></article>
+      <article><span>分区未放行</span><strong>{{ store.stats.zonesHeld }}</strong><small>回路变化即作废重算</small></article>
+    </div>
+
+    <div class="zone-strip">
+      <article v-for="zone in store.zones" :key="zone.id" @click="router.push('/zones')">
+        <div>
+          <strong>{{ zone.name }}</strong>
+          <small>回路{{ zone.circuitState }} · {{ zone.deviceCodes.join(' / ') }}</small>
+        </div>
+        <NTag :type="conclusionType(store.zoneConclusion(zone.id))" :bordered="false">{{ store.zoneConclusion(zone.id) }}</NTag>
+      </article>
     </div>
 
     <div class="toolbar">

@@ -9,21 +9,29 @@ const router = useRouter()
 const columns = ['需整改', '整改中', '待复测', '已关闭'] as const
 const riskOrder = { 紧急: 0, 高: 1, 中: 2, 低: 3 }
 const grouped = computed(() => Object.fromEntries(columns.map((status) => [status, store.records.filter((item) => item.status === status).sort((a, b) => riskOrder[a.risk] - riskOrder[b.risk])])))
+const conclusionType = (conclusion: string) =>
+  conclusion === '已放行' ? 'success' : conclusion === '待核' || conclusion.includes('断开') ? 'error' : 'warning'
 </script>
 
 <template>
   <section class="content">
     <div class="board-intro">
-      <div><h2>缺陷处置泳道</h2><p>按风险等级排列未闭环任务，点击卡片进入现场处置记录。</p></div>
+      <div><h2>缺陷处置泳道</h2><p>按风险等级排列未闭环任务；缺陷处置与分区结论联动，单台通过不能先行开放。</p></div>
       <NButton @click="store.resetDemo()">恢复演示数据</NButton>
     </div>
     <div class="kanban">
       <div v-for="column in columns" :key="column" class="kanban-column">
         <header><span>{{ column }}</span><b>{{ grouped[column].length }}</b></header>
         <article v-for="record in grouped[column]" :key="record.id" @click="router.push(`/records/${record.id}`)">
-          <div><NTag :type="record.risk === '紧急' ? 'error' : record.risk === '高' ? 'warning' : 'default'" size="small" :bordered="false">{{ record.risk }}风险</NTag><small>V{{ record.version }}</small></div>
+          <div>
+            <NTag :type="record.risk === '紧急' ? 'error' : record.risk === '高' ? 'warning' : 'default'" size="small" :bordered="false">{{ record.risk }}风险</NTag>
+            <small>V{{ record.version }}</small>
+          </div>
           <h3>{{ record.deviceName }}</h3>
           <p>{{ record.deviceCode }} · {{ record.area }}</p>
+          <div class="zone-line">
+            <NTag :type="conclusionType(store.zoneConclusion(record.zoneId))" size="tiny" :bordered="false">{{ record.zoneId ?? '未关联' }} · {{ store.zoneConclusion(record.zoneId) }}</NTag>
+          </div>
           <footer><span>{{ record.assignedTo }}</span><span :class="{ overdue: record.dueDate <= '2026-09-29' }">{{ record.dueDate }} 截止</span></footer>
         </article>
         <div v-if="!grouped[column].length" class="kanban-empty">暂无任务</div>

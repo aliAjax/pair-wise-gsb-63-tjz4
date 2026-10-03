@@ -6,13 +6,21 @@ import { useInspectionStore } from '../stores/inspection'
 const store = useInspectionStore()
 const keyword = ref('')
 const entries = computed(() => store.audit.filter((item) => !keyword.value || `${item.recordId} ${item.action} ${item.operator} ${item.detail}`.includes(keyword.value)))
+const conclusionType = (conclusion: string) =>
+  conclusion === '已放行' ? 'success' : conclusion === '待核' || conclusion.includes('断开') ? 'error' : 'warning'
 </script>
 
 <template>
   <section class="content audit-layout">
     <div class="audit-head">
-      <div><h2>操作审计与版本追溯</h2><p>记录创建、检验修改、状态流转和冲突处理的完整时间线。</p></div>
+      <div><h2>操作审计与版本追溯</h2><p>记录创建、检验修改、状态流转、回路变更与冲突处理的完整时间线，审计与总览、看板认同一条放行结果。</p></div>
       <NInput v-model:value="keyword" clearable placeholder="按编号、操作人、动作搜索" style="max-width: 330px" />
+    </div>
+    <div class="audit-zones">
+      <span>当前分区结论</span>
+      <NTag v-for="zone in store.zones" :key="zone.id" :type="conclusionType(store.zoneConclusion(zone.id))" :bordered="false">
+        {{ zone.name }} · {{ store.zoneConclusion(zone.id) }}
+      </NTag>
     </div>
     <div class="timeline">
       <article v-for="entry in entries" :key="entry.id">

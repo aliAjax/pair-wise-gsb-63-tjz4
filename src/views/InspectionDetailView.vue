@@ -23,9 +23,16 @@ watch(record, (value) => {
 
 const items = computed(() => record.value?.items ?? [])
 const transitions: InspectionStatus[] = ['待检验', '需整改', '整改中', '待复测', '已关闭', '停用']
+const zone = computed(() => store.zones.find((item) => item.id === record.value?.zoneId))
+const zoneRelease = computed(() => record.value?.zoneId ? store.activeRelease(record.value.zoneId) : undefined)
+const conclusion = computed(() => store.zoneConclusion(record.value?.zoneId ?? null))
 
 function save() {
   if (!record.value) return
+  if (record.value.stopped && form.stopped === false && !store.canReopen(record.value)) {
+    message.error(`分区结论为「${conclusion.value}」：分区复测与值班长确认未齐全，单台通过不能先行开放`)
+    return
+  }
   store.updateRecord(record.value.id, {
     assignedTo: form.assignedTo,
     dueDate: form.dueDate,
@@ -112,9 +119,23 @@ function exportRecord() {
           <span>{{ status }}</span><small>{{ status === record.status ? '当前状态' : '执行流转' }}</small>
         </button>
       </div>
+      <div class="zone-panel">
+        <span class="side-label">联锁分区结论</span>
+        <div class="zone-panel-head">
+          <strong>{{ zone?.name ?? '未关联分区' }}</strong>
+          <NTag :type="conclusion === '已放行' ? 'success' : conclusion === '待核' || conclusion.includes('断开') ? 'error' : 'warning'" :bordered="false">{{ conclusion }}</NTag>
+        </div>
+        <small v-if="record.backfillStatus === '待核'" class="pending-hint">旧数据缺分区号且设备无关联，停在待核</small>
+        <ul v-if="zoneRelease" class="mini-checklist">
+          <li :class="{ done: zone?.circuitState === '接通' }">回路{{ zone?.circuitState }}</li>
+          <li :class="{ done: zoneRelease.retestDone }">分区复测{{ zoneRelease.retestDone ? '已完成' : '未完成' }}</li>
+          <li :class="{ done: zoneRelease.leaderConfirmed }">值班长确认{{ zoneRelease.leaderConfirmed ? ` · ${zoneRelease.leader}` : '未确认' }}</li>
+        </ul>
+        <NButton block size="small" @click="router.push('/zones')">前往分区放行中心</NButton>
+      </div>
       <div class="rule-note">
         <strong>闭环校验</strong>
-        <p>异常项存在时禁止关闭；紧急风险必须先停用设备。所有操作均写入审计。</p>
+        <p>异常项存在时禁止关闭；紧急风险必须先停用设备。回路状态一变化分区放行立即作废重算，单台通过不能先行开放。所有操作均写入审计。</p>
       </div>
       <NButton block @click="router.push('/audit')">查看完整审计</NButton>
     </aside>
